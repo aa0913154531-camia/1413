@@ -3,15 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>413幸運輪盤</title>
+    <title>camia幸運輪盤</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700;900&display=swap');
         body { 
             font-family: 'Noto Sans TC', sans-serif; 
-            /* 1. 背景改為溫暖的米色 */
-            background-color: #FDFBF0; 
-            color: #5D4037; /* 深咖啡色文字，更柔和 */
+            background-color: #FDFBF0; /* 溫暖米色底 */
+            color: #5D4037; 
             height: 100dvh;
             margin: 0;
             overflow: hidden;
@@ -43,60 +42,41 @@
             transform: translateX(-50%); 
             width: 30px; 
             height: 40px; 
-            /* 指針改為柔和的珊瑚紅 */
-            background: #FF8A80; 
+            background: #FF8A80; /* 珊瑚色指針 */
             clip-path: polygon(50% 100%, 0 0, 100% 0); 
             z-index: 20; 
-            filter: drop-shadow(0 0 8px rgba(255, 138, 128, 0.4)); 
         }
-        canvas { width: 100% !important; height: 100% !important; border-radius: 50%; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+        canvas { width: 100% !important; height: 100% !important; border-radius: 50%; box-shadow: 0 4px 20px rgba(0,0,0,0.05); }
         .btn-spin { 
-            /* 按鈕改為馬卡龍粉藍到粉綠的漸層 */
             background: linear-gradient(135deg, #B2EBF2 0%, #C8E6C9 100%); 
-            color: #455A64; /* 按鈕文字用深灰藍 */
-            box-shadow: 0 4px 15px rgba(178, 235, 242, 0.5);
+            color: #455A64;
+            box-shadow: 0 4px 15px rgba(178, 235, 242, 0.4);
         }
     </style>
 </head>
 <body>
-
     <div class="app-container">
-        <h1 class="text-4xl font-black text-center tracking-widest text-[#5D4037]">
-            413幸運輪盤
-        </h1>
-
+        <h1 class="text-4xl font-black text-center tracking-widest text-[#5D4037]">camia幸運輪盤</h1>
         <div class="wheel-box">
             <div class="pointer"></div>
             <canvas id="wheelCanvas" width="800" height="800"></canvas>
         </div>
-
         <div class="flex flex-col items-center gap-4">
-            <button id="spinBtn" class="btn-spin font-black py-4 px-12 rounded-full text-2xl active:scale-95 transition-transform disabled:opacity-50">
-                開始旋轉
-            </button>
-            <div id="result" class="text-2xl font-bold text-[#FF8A80] h-8 text-center drop-shadow-sm"></div>
+            <button id="spinBtn" class="btn-spin font-black py-4 px-12 rounded-full text-2xl active:scale-95 transition-transform disabled:opacity-50">開始旋轉</button>
+            <div id="result" class="text-2xl font-bold text-[#FF8A80] h-8 text-center"></div>
         </div>
     </div>
-
     <script>
-        // 2. 重新編排馬卡龍色調獎項
         const prizeData = {
-            // 上上籤: 櫻花粉, 頭獎: 薰衣草紫
             high: [{name:"上上籤",color:"#F8BBD0"},{name:"頭獎",color:"#E1BEE7"}],
-            // 二獎: 蒂芬妮藍, 三獎: 薄荷綠
-            mid: [{name:"二獎",color:"#B2EBF2"},{name:"二獎",color:"#B2EBF2"},{name:"三獎",color:"#C8E6C9"},{name:"三獎",color:"#C8E6C9"},{name:"三獎",color:"#C8E6C9"}],
-            // 四獎: 奶油黃
-            low: Array(5).fill({name:"四獎",color:"#FFF9C4"}),
-            // 安慰獎: 天空藍
-            cons: Array(10).fill({name:"安慰獎",color:"#BBDEFB"}),
-            // 再接再厲: 柔和灰
+            mid: [{name:"二獎",color:"#B2EBF2"},{name:"三獎",color:"#C8E6C9"}],
+            low: {name:"四獎",color:"#FFF9C4"},
+            cons: {name:"安慰獎",color:"#BBDEFB"},
             retry: {name:"再接再厲",color:"#F5F5F5"}
         };
-
         let prizes = Array(50).fill(prizeData.retry);
-        const winners = [prizeData.high[0], prizeData.cons[0], prizeData.mid[2], prizeData.cons[1], prizeData.low[0], prizeData.high[1], prizeData.cons[2], prizeData.mid[3], prizeData.cons[3], prizeData.low[1], prizeData.mid[0], prizeData.cons[4], prizeData.low[2], prizeData.cons[5], prizeData.mid[4], prizeData.cons[6], prizeData.low[3], prizeData.cons[7], prizeData.mid[1], prizeData.cons[8], prizeData.low[4], prizeData.cons[9]];
-        let step = 50 / winners.length;
-        winners.forEach((p, i) => { prizes[Math.floor(i * step)] = p; });
+        const winConfig = [prizeData.high[0], prizeData.cons, prizeData.mid[1], prizeData.cons, prizeData.low, prizeData.high[1], prizeData.cons, prizeData.mid[0]];
+        winConfig.forEach((p, i) => { prizes[i * 6] = p; });
 
         const canvas = document.getElementById('wheelCanvas');
         const ctx = canvas.getContext('2d');
@@ -111,39 +91,29 @@
             prizes.forEach((p, i) => {
                 const ang = i * arc + currentRot;
                 ctx.beginPath(); ctx.fillStyle = p.color; ctx.moveTo(400, 400);
-                // 畫弧形線條用淺灰，更精緻
                 ctx.arc(400, 400, 380, ang, ang + arc); ctx.fill();
-                ctx.strokeStyle = "rgba(0,0,0,0.03)"; ctx.lineWidth = 1; ctx.stroke();
+                ctx.strokeStyle = "rgba(0,0,0,0.02)"; ctx.stroke();
                 ctx.save(); ctx.translate(400, 400); ctx.rotate(ang + arc/2);
-                // 輪盤文字顏色改為深柔和咖啡色
-                ctx.fillStyle = "#5D4037";
-                ctx.font = "bold 16px Arial"; ctx.fillText(p.name, 260, 6); ctx.restore();
+                ctx.fillStyle = "#5D4037"; ctx.font = "bold 16px Arial"; ctx.fillText(p.name, 260, 6); ctx.restore();
             });
-            // 畫中心圓
             ctx.beginPath(); ctx.arc(400, 400, 20, 0, Math.PI*2); ctx.fillStyle = "#fff"; ctx.fill();
         }
 
         spinBtn.onclick = () => {
             if (isSpinning) return;
-            isSpinning = true;
-            spinBtn.disabled = true;
-            resultDiv.innerText = "";
-            let spinTime = 4000;
-            let start = null;
+            isSpinning = true; spinBtn.disabled = true; resultDiv.innerText = "";
             let totalRotation = 30 + Math.random() * 20; 
-            let initialRot = currentRot;
-
+            let start = null;
             function ani(ts) {
                 if(!start) start = ts;
                 let progress = ts - start;
-                let t = progress / spinTime;
-                let easing = 1 - Math.pow(1 - t, 4); 
-                currentRot = initialRot + totalRotation * easing;
+                let t = progress / 4000;
+                let easing = 1 - Math.pow(1 - t, 4);
+                currentRot += (totalRotation * (1-easing) * 0.1);
                 draw();
-                if(progress < spinTime) requestAnimationFrame(ani);
+                if(progress < 4000) requestAnimationFrame(ani);
                 else {
-                    isSpinning = false;
-                    spinBtn.disabled = false;
+                    isSpinning = false; spinBtn.disabled = false;
                     const final = (1.5 * Math.PI - (currentRot % (2*Math.PI)) + 2*Math.PI) % (2*Math.PI);
                     const idx = Math.floor(final / ((2*Math.PI)/50));
                     resultDiv.innerText = "獲得獎項：" + prizes[idx].name;
