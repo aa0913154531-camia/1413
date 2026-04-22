@@ -9,7 +9,7 @@
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700;900&display=swap');
         body { 
             font-family: 'Noto Sans TC', sans-serif; 
-            /* 修改點：背景色再加深 4 個色階 (#D7C0A7) */
+            /* 背景更換為溫暖奶茶色 */
             background-color: #D7C0A7; 
             color: #4E342E; 
             height: 100dvh;
@@ -77,6 +77,7 @@
             cons: {name:"安慰獎",color:"#64B5F6"},
             retry: {name:"再接再厲",color:"#BDBDBD"}
         };
+        // 依照上圖配置生成 50 格獎項
         let prizes = Array(50).fill(prizeData.retry);
         const winConfig = [prizeData.high[0], prizeData.cons, prizeData.mid[1], prizeData.cons, prizeData.low, prizeData.high[1], prizeData.cons, prizeData.mid[0]];
         winConfig.forEach((p, i) => { prizes[i * 6] = p; });
@@ -101,18 +102,17 @@
                 ctx.translate(400, 400); 
                 ctx.rotate(ang + arc/2);
                 
-                // 保留大字體設定
+                // 設定：字體 22px、加粗、靠最外圍 (310)
                 ctx.fillStyle = "#3E2723"; 
                 ctx.font = "bold 22px Arial"; 
-                
-                // 保留最外圍位置設定
+                ctx.textAlign = "right";
                 ctx.fillText(p.name, 310, 8); 
                 
                 ctx.restore();
             });
-            // 裝飾中心圓
-            ctx.beginPath(); ctx.arc(400, 400, 28, 0, Math.PI*2); ctx.fillStyle = "#fff"; ctx.fill();
-            ctx.strokeStyle = "#D7C0A7"; ctx.lineWidth = 6; ctx.stroke();
+            // 裝飾圓心
+            ctx.beginPath(); ctx.arc(400, 400, 25, 0, Math.PI*2); ctx.fillStyle = "#fff"; ctx.fill();
+            ctx.strokeStyle = "#D7C0A7"; ctx.lineWidth = 5; ctx.stroke();
         }
 
         spinBtn.onclick = () => {
